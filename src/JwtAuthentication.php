@@ -299,7 +299,7 @@ class JwtAuthentication implements MiddlewareInterface
 	protected function fetchDecodedToken(ServerRequestInterface $request): array
 	{
 		$token = $this->fetchToken($request);
-		return $this->decodedToken($token);
+		return $this->decodeToken($token);
 	}
 
     /**
