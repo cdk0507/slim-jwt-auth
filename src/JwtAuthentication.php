@@ -53,7 +53,7 @@ use Tuupola\Middleware\JwtAuthentication\RequestMethodRule;
 use Tuupola\Middleware\JwtAuthentication\RequestPathRule;
 use Tuupola\Middleware\JwtAuthentication\RuleInterface;
 
-final class JwtAuthentication implements MiddlewareInterface
+class JwtAuthentication implements MiddlewareInterface
 {
     use DoublePassTrait;
 
@@ -145,8 +145,7 @@ final class JwtAuthentication implements MiddlewareInterface
 
         /* If token cannot be found or decoded return with 401 Unauthorized. */
         try {
-            $token = $this->fetchToken($request);
-            $decoded = $this->decodeToken($token);
+			$decoded = $this->fetchDecodedToken($request);
         } catch (RuntimeException | DomainException $exception) {
             $response = (new ResponseFactory)->createResponse(401);
             return $this->processError($response, [
@@ -167,7 +166,6 @@ final class JwtAuthentication implements MiddlewareInterface
 
         /* Modify $request before calling next middleware. */
         if (is_callable($this->options["before"])) {
-            $response = (new ResponseFactory)->createResponse(200);
             $beforeRequest = $this->options["before"]($request, $params);
             if ($beforeRequest instanceof ServerRequestInterface) {
                 $request = $beforeRequest;
@@ -271,7 +269,7 @@ final class JwtAuthentication implements MiddlewareInterface
                 return $matches[1];
             }
             return $cookieParams[$this->options["cookie"]];
-        };
+        }
 
         /* If everything fails log and throw. */
         $this->log(LogLevel::WARNING, "Token not found");
@@ -297,6 +295,12 @@ final class JwtAuthentication implements MiddlewareInterface
             throw $exception;
         }
     }
+
+	protected function fetchDecodedToken(ServerRequestInterface $request): array
+	{
+		$token = $this->fetchToken($request);
+		return $this->decodedToken($token);
+	}
 
     /**
      * Hydrate options from given array.
